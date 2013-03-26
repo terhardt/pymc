@@ -5,7 +5,7 @@ Created on Mar 15, 2011
 '''
 import numpy as np
 
-__all__ = ['NpTrace', 'MultiTrace']
+__all__ = ['NpTrace', 'MultiTrace', 'DFTrace']
 
 class NpTrace(object):
     """
@@ -16,7 +16,7 @@ class NpTrace(object):
         self.samples = StrDict()
         self.nsamples = 0
     
-    def __add__(self, point):
+    def record(self, point):
         """
         records the position of a chain at a certain point in time
         """
@@ -70,3 +70,20 @@ class StrDict(dict):
 
     def __delitem__(self, key):
         return dict.__delitem__(self, str(key))
+
+
+from pandas import DataFrame
+
+class DFTrace(DataFrame): 
+    def __init__(self, *args, **kwargs): 
+        DataFrame.__init__(self, *args, **kwargs)
+        self.toappend = []
+
+    def record(self, point):
+        self.toappend.append(point)
+        return self
+
+    def finalize(self):
+        return DFTrace(self.append(self.toappend, ignore_index = True))
+        
+

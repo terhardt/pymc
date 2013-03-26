@@ -43,7 +43,10 @@ def sample(draws, step, start = None, trace = None, state = None):
     tstart = time() 
     for _ in xrange(int(draws)):
         state, point = step.step(state, point)
-        trace = trace + point
+        trace = trace.record(point)
+
+    if hasattr(trace, "finalize"):
+        trace = trace.finalize()
 
     return trace, state, time() - tstart
 
