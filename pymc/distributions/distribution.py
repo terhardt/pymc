@@ -9,11 +9,13 @@ __all__ = ['DensityDist', 'TensorDist', 'tensordist', 'continuous',
 
 
 class Distribution(object):
-    def __new__(cls,name, *args, **kwargs):
+    def __new__(cls, name, *args, **kwargs):
+
         try:
-            model = Model.get_context()
-        except TypeError:
-            raise TypeError("No model on context stack, which is needed to use the Normal('x', 0,1) syntax. Add a 'with model:' block")
+            model = kwargs.pop('model')
+        except KeyError:
+            model = None
+        model = modelcontext(model)
 
         if 'observed' in kwargs:
             obs = kwargs.pop('observed')
@@ -24,7 +26,7 @@ class Distribution(object):
             return model.Var(name, dist)
 
     @classmethod
-    def dist(cls, *args,**kwargs):
+    def dist(cls, *args, **kwargs):
         dist = object.__new__(cls)
         dist.__init__(*args, **kwargs)
         return dist

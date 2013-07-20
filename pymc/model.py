@@ -129,11 +129,9 @@ def Point(*args, **kwargs):
         *args, **kwargs
             arguments to build a dict
     """
-    if 'model' in kwargs:
-        model = kwargs['model']
-        del kwargs['model']
-    else:
-        model = Model.get_context()
+
+    model = modelcontext(kwargs.get('model'))
+
     try:
         d = dict(*args, **kwargs)
     except Exception as e:

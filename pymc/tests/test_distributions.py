@@ -1,7 +1,7 @@
 import itertools as its
 from checks import *
 from pymc import *
-from numpy import array, inf
+from numpy import array, inf, ones
 
 from scipy import integrate
 from numdifftools import Gradient
@@ -22,6 +22,9 @@ I = array([-1000, -3, -2, -1, 0, 1, 2, 3, 1000], 'int64')
 Nat = array([0, 1, 2, 3, 5000, 50000], 'int64')
 Bool = array([0, 0, 1, 1], 'int64')
 Natbig = array([0, 3, 4, 5, 1000], 'int64')
+Natsmall = array([0, 3, 4, 5, 10], 'int64')
+
+Probsunif = array([ones(20)/20., ones(100)/100.])
 
 
 def test_unif():
@@ -31,6 +34,8 @@ def test_unif():
 def test_discrete_unif():
     checkd(DiscreteUniform, Rdunif, {'lower': -Rplusdunif, 'upper': Rplusdunif})
 
+def test_categorical():
+    checkd(Categorical, Natsmall, {'p': Probsunif})
 
 def test_flat():
     checkd(Flat, Runif, {}, False)

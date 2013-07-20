@@ -1,7 +1,9 @@
 from dist_math import *
+from numpy import argmax
 
 __all__  = ['Binomial',  'BetaBin',  'Bernoulli',  'Poisson', 'NegativeBinomial',
-'ConstantDist', 'ZeroInflatedPoisson', 'DiscreteUniform', 'Geometric']
+'ConstantDist', 'ZeroInflatedPoisson', 'DiscreteUniform', 'Geometric',
+'Categorical']
 
 
 @tensordist(discrete)
@@ -134,6 +136,41 @@ def Bernoulli(p):
         ----------
         value : int
             Series of successes (1) and failures (0). :math:`x=0,1`
+        """.format(p)
+
+    return locals()
+
+@tensordist(discrete)
+def Categorical(p):
+    """
+    Categorical describes the result of a random event that can take on one
+     of K possible outcomes, with the probability of each outcome
+     separately specified. It is a special case of a multinomial
+    distribution with n=1.
+
+    .. math::  f(x=i \mid p) = p_i
+
+    for :math:`i \in 0 \ldots k-1`.
+
+    :Parameters:
+      - `x` : [int] :math:`x \in 0\ldots k-1`
+      - `p` : [float] :math:`p > 0`, :math:`\sum p = 1`
+
+    """
+    def logp(value):
+        return bound(
+            log(p[value]),
+            all(0 <= p), all(p <= 1))
+
+    mode = argmax(p)
+
+    logp.__doc__ = """
+        Categorical log-likelihood with parameters p={0}.
+
+        Parameters
+        ----------
+        value : int
+            Series of categorical outcomes. :math:`x=0,1,2,\ldots`
         """.format(p)
 
     return locals()
