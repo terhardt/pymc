@@ -8,7 +8,9 @@ nodes in PyMC.
 from __future__ import division
 
 from .dist_math import *
-from numpy.random import uniform as runiform, normal as rnormal
+import numpy as np
+from numpy.random import random, uniform as runiform, normal as rnormal, exponential as rexponential, lognormal as rlognormal, chisquare as rchi2, gamma as rgamma
+from scipy.stats.distributions import beta as sbeta
 
 __all__ = ['Uniform', 'Flat', 'Normal', 'Beta', 'Exponential', 'Laplace',
            'T', 'Cauchy', 'Gamma', 'Bound', 'Tpos', 'Lognormal']
@@ -108,6 +110,9 @@ class Normal(Continuous):
             (-tau * (value - mu) ** 2 + log(tau / pi / 2.)) / 2.,
             tau > 0)
 
+    def random(self, size=None):
+        return rnormal(self.mu, np.sqrt(self.tau), size)
+
 
 class Beta(Continuous):
     """
@@ -149,6 +154,9 @@ class Beta(Continuous):
             alpha > 0,
             beta > 0)
 
+    def random(self, size):
+        return sbeta.ppf(random(size), self.alpha, self.beta)
+
 
 class Exponential(Continuous):
     """
@@ -175,6 +183,9 @@ class Exponential(Continuous):
                      value > 0,
                      lam > 0)
 
+    def random(self, size):
+        return rexponential(1./self.lam, size)
+
 
 class Laplace(Continuous):
     """
@@ -200,6 +211,10 @@ class Laplace(Continuous):
         b = self.b
 
         return -log(2 * b) - abs(value - mu) / b
+
+    def random(self, size):
+        u = runiform(-0.5, 0.5, size)
+        return self.mu - np.sign(u)*np.log(1 - 2*np.abs(u))/self.b
 
 
 class Lognormal(Continuous):
@@ -244,6 +259,8 @@ class Lognormal(Continuous):
             -0.5*tau*(log(value) - mu)**2 + 0.5*log(tau/(2.*pi)) - log(value),
             tau > 0)
 
+    def random(self, size):
+        return rlognormal(self.mu, np.sqrt(1./self.tau), size)
 
 class T(Continuous):
     """
@@ -286,6 +303,10 @@ class T(Continuous):
             lam > 0,
             nu > 0)
 
+    def random(self, size):
+        return (rnormal(self.mu, 1./np.sqrt(self.tau), size) /
+             np.sqrt(rchi2(self.nu, size)/self.nu))
+
 
 class Cauchy(Continuous):
     """
@@ -319,6 +340,10 @@ class Cauchy(Continuous):
             -log(pi) - log(beta) - log(1 + ((
                                             value - alpha) / beta) ** 2),
             beta > 0)
+
+    def random(self, size):
+        return self.alpha + self.beta*np.tan(np.pi*random(size) - np.pi/2.0)
+
 
 class Gamma(Continuous):
     """
@@ -362,6 +387,9 @@ class Gamma(Continuous):
             value >= 0,
             alpha > 0,
             beta > 0)
+
+    def random(self, size):
+        return rgamma(self.alpha, 1./self.beta, size)
 
 class Bounded(Continuous):
     """A bounded distribution."""
