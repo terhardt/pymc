@@ -328,6 +328,10 @@ class FreeRV(Factor, TensorVariable):
                 distribution.shape, distribution.dtype) * distribution.default()
             self.logp_elemwiset = distribution.logp(self)
             self.model = model
+            try:
+                self.random = distribution.random
+            except AttributeError:
+                self.random = None
 
 class ObservedRV(Factor):
     """Observed random variable that a model is specified in terms of."""
