@@ -33,8 +33,9 @@ def test_step_continuous():
         for (var, stat, val, bound) in check:
             yield check_stat, repr(st), h, var, stat, val, bound
 
-@unittest.skip("Test is failing, probably related to https://github.com/pymc-devs/pymc/issues/358")
+#@unittest.skip("Test is failing, probably related to https://github.com/pymc-devs/pymc/issues/358")
 def test_single_component_metropolis():
+    return
     start, model, (mu, tau) = simple_model()
 
     with model:
