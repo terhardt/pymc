@@ -126,8 +126,8 @@ def test_uniform():
 def test_random_uniform():
     lo, hi = 0, 10
     with Model() as m:
-        u = Uniform('u', lo, hi)
-    r = u.random(size=10000)
+        u = Uniform('u', lo, hi, shape=10000)
+    r = u.random()
     assert_almost_equal(r.mean(), (hi-lo)/2., decimal=1)
 
 def test_discrete_unif():
@@ -153,8 +153,8 @@ def test_normal():
 def test_random_normal():
     mu, tau = 0, 1
     with Model() as m:
-        n = Normal('n', mu, tau)
-    r = n.random(size=10000)
+        n = Normal('n', mu, tau, shape=10000)
+    r = n.random()
     assert_almost_equal(r.mean(), mu, decimal=1)
 
 def test_beta():
@@ -166,8 +166,8 @@ def test_beta():
 def test_random_beta():
     alpha, beta = 1., 3.
     with Model() as m:
-        b = Beta('b', alpha, beta)
-    r = b.random(size=10000)
+        b = Beta('b', alpha, beta, shape=10000)
+    r = b.random()
     assert_almost_equal(r.mean(), alpha/(alpha+beta), decimal=1)
     assert_almost_equal(r.var(),
         alpha*beta/((alpha+beta+1)*(alpha+beta)**2), decimal=1)
@@ -181,8 +181,8 @@ def test_exponential():
 def test_random_exponential():
     beta = 3.
     with Model() as m:
-        x = Exponential('x', beta)
-    r = x.random(size=10000)
+        x = Exponential('x', beta, shape=10000)
+    r = x.random()
     assert_almost_equal(r.mean(), 1./beta, decimal=1)
     assert_almost_equal(r.var(), 1./(beta**2), decimal=1)
 

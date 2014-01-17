@@ -28,6 +28,9 @@ def get_tau(tau=None, sd=None):
         else:
             return tau
 
+# Draws value from parameter if it is another variable, otherwise returns value
+draw_values = lambda *params: np.squeeze([item if (not hasattr(item, 'random')) else item.random() for item in params])
+
 class Uniform(Continuous):
     """
     Continuous uniform log-likelihood.
@@ -57,8 +60,9 @@ class Uniform(Continuous):
             -log(upper - lower),
             lower <= value, value <= upper)
 
-    def random(self, size=None):
-        return runiform(self.upper, self.lower, size)
+    def random(self):
+        upper, lower = draw_values(self.upper, self.lower)
+        return runiform(upper, lower, self.shape)
 
 
 class Flat(Continuous):
@@ -110,8 +114,9 @@ class Normal(Continuous):
             (-tau * (value - mu) ** 2 + log(tau / pi / 2.)) / 2.,
             tau > 0)
 
-    def random(self, size=None):
-        return rnormal(self.mu, np.sqrt(self.tau), size)
+    def random(self):
+        mu, tau = draw_values(self.mu, self.tau)
+        return rnormal(mu, np.sqrt(tau), size=self.shape)
 
 
 class Beta(Continuous):
@@ -154,8 +159,9 @@ class Beta(Continuous):
             alpha > 0,
             beta > 0)
 
-    def random(self, size):
-        return sbeta.ppf(random(size), self.alpha, self.beta)
+    def random(self):
+        alpha, beta = draw_values(self.alpha, self.beta)
+        return sbeta.ppf(random(self.shape), alpha, beta)
 
 
 class Exponential(Continuous):
@@ -183,8 +189,9 @@ class Exponential(Continuous):
                      value > 0,
                      lam > 0)
 
-    def random(self, size):
-        return rexponential(1./self.lam, size)
+    def random(self):
+        lam = draw_values(self.lam)
+        return rexponential(1./lam, self.shape)
 
 
 class Laplace(Continuous):
@@ -213,8 +220,9 @@ class Laplace(Continuous):
         return -log(2 * b) - abs(value - mu) / b
 
     def random(self, size):
+        mu, b = draw_values(self.mu, self.b)
         u = runiform(-0.5, 0.5, size)
-        return self.mu - np.sign(u)*np.log(1 - 2*np.abs(u))/self.b
+        return mu - np.sign(u) * np.log(1 - 2*np.abs(u)) / b
 
 
 class Lognormal(Continuous):
@@ -260,7 +268,8 @@ class Lognormal(Continuous):
             tau > 0)
 
     def random(self, size):
-        return rlognormal(self.mu, np.sqrt(1./self.tau), size)
+        mu, tau = draw_values(self.mu, self.tau)
+        return rlognormal(mu, np.sqrt(1./tau), self.shape)
 
 class T(Continuous):
     """
@@ -304,8 +313,9 @@ class T(Continuous):
             nu > 0)
 
     def random(self, size):
-        return (rnormal(self.mu, 1./np.sqrt(self.tau), size) /
-             np.sqrt(rchi2(self.nu, size)/self.nu))
+        mu, nu, tau = draw_values(self.mu, self.nu, self.tau)
+        return (rnormal(mu, 1./np.sqrt(tau), size) /
+             np.sqrt(rchi2(nu, self.shape)/nu))
 
 
 class Cauchy(Continuous):
@@ -342,7 +352,8 @@ class Cauchy(Continuous):
             beta > 0)
 
     def random(self, size):
-        return self.alpha + self.beta*np.tan(np.pi*random(size) - np.pi/2.0)
+        alpha, beta = draw_values(self.alpha, self.beta)
+        return alpha + beta*np.tan(np.pi*random(self.shape) - np.pi/2.0)
 
 
 class Gamma(Continuous):
@@ -389,7 +400,8 @@ class Gamma(Continuous):
             beta > 0)
 
     def random(self, size):
-        return rgamma(self.alpha, 1./self.beta, size)
+        alpha, beta = draw_values(self.alpha, self.beta)
+        return rgamma(alpha, 1./beta, self.shape)
 
 class Bounded(Continuous):
     """A bounded distribution."""
