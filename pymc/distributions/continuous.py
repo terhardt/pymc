@@ -28,8 +28,16 @@ def get_tau(tau=None, sd=None):
         else:
             return tau
 
-# Draws value from parameter if it is another variable, otherwise returns value. Optional point
-# argument allows caller to fix parameters at values specified in point.
+"""
+Draws value from parameter if it is another variable, otherwise returns value. Optional point
+argument allows caller to fix parameters at values specified in point. Action is chosen according to:
+
+1. If parameter does not have a `random` attribute, assume it is a scalar parameter value
+2. If there is no `point` passed, draw random value with no point
+3. If there is a value in the `point` dict, use that value
+4. Draw a random value using `point`
+
+"""
 draw_values = lambda params, point=None: np.squeeze([item if not hasattr(item, 'random')
                 else (item.random(None) if point is None else (point.get(item.name) or item.random(point)))
                     for item in np.atleast_1d(params)])
