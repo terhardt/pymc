@@ -28,8 +28,9 @@ def get_tau(tau=None, sd=None):
         else:
             return tau
 
-# Draws value from parameter if it is another variable, otherwise returns value
-draw_values = lambda *params: np.squeeze([item if (not hasattr(item, 'random')) else item.random() for item in params])
+# Draws value from parameter if it is another variable, otherwise returns value. Optional point
+# argument allows caller to fix parameters at values specified in point.
+draw_values = lambda params, point=None: np.squeeze([item if not hasattr(item, 'random') else (item.random() if point is None else (point.get(item.name) or item.random())) for item in np.atleast_1d(params)])
 
 class Uniform(Continuous):
     """
@@ -60,8 +61,8 @@ class Uniform(Continuous):
             -log(upper - lower),
             lower <= value, value <= upper)
 
-    def random(self):
-        upper, lower = draw_values(self.upper, self.lower)
+    def random(self, point=None):
+        upper, lower = draw_values([self.upper, self.lower], point)
         return runiform(upper, lower, self.shape)
 
 
@@ -76,6 +77,9 @@ class Flat(Continuous):
 
     def logp(self, value):
         return zeros_like(value)
+
+    def random(self):
+        raise NotImplementedError("Cannot sample from Flat.")
 
 
 class Normal(Continuous):
@@ -114,8 +118,8 @@ class Normal(Continuous):
             (-tau * (value - mu) ** 2 + log(tau / pi / 2.)) / 2.,
             tau > 0)
 
-    def random(self):
-        mu, tau = draw_values(self.mu, self.tau)
+    def random(self, point=None):
+        mu, tau = draw_values([self.mu, self.tau], point)
         return rnormal(mu, np.sqrt(tau), size=self.shape)
 
 
@@ -159,8 +163,8 @@ class Beta(Continuous):
             alpha > 0,
             beta > 0)
 
-    def random(self):
-        alpha, beta = draw_values(self.alpha, self.beta)
+    def random(self, point=None):
+        alpha, beta = draw_values([self.alpha, self.beta], point)
         return sbeta.ppf(random(self.shape), alpha, beta)
 
 
@@ -189,8 +193,8 @@ class Exponential(Continuous):
                      value > 0,
                      lam > 0)
 
-    def random(self):
-        lam = draw_values(self.lam)
+    def random(self, point):
+        lam = draw_values(self.lam, point)
         return rexponential(1./lam, self.shape)
 
 
@@ -219,8 +223,8 @@ class Laplace(Continuous):
 
         return -log(2 * b) - abs(value - mu) / b
 
-    def random(self, size):
-        mu, b = draw_values(self.mu, self.b)
+    def random(self, point=None):
+        mu, b = draw_values([self.mu, self.b], point)
         u = runiform(-0.5, 0.5, size)
         return mu - np.sign(u) * np.log(1 - 2*np.abs(u)) / b
 
@@ -267,8 +271,8 @@ class Lognormal(Continuous):
             -0.5*tau*(log(value) - mu)**2 + 0.5*log(tau/(2.*pi)) - log(value),
             tau > 0)
 
-    def random(self, size):
-        mu, tau = draw_values(self.mu, self.tau)
+    def random(self, point=None):
+        mu, tau = draw_values([self.mu, self.tau], point)
         return rlognormal(mu, np.sqrt(1./tau), self.shape)
 
 class T(Continuous):
@@ -312,8 +316,8 @@ class T(Continuous):
             lam > 0,
             nu > 0)
 
-    def random(self, size):
-        mu, nu, tau = draw_values(self.mu, self.nu, self.tau)
+    def random(self, point=None):
+        mu, nu, tau = draw_values([self.mu, self.nu, self.tau], point)
         return (rnormal(mu, 1./np.sqrt(tau), size) /
              np.sqrt(rchi2(nu, self.shape)/nu))
 
@@ -351,8 +355,8 @@ class Cauchy(Continuous):
                                             value - alpha) / beta) ** 2),
             beta > 0)
 
-    def random(self, size):
-        alpha, beta = draw_values(self.alpha, self.beta)
+    def random(self, point=None):
+        alpha, beta = draw_values([self.alpha, self.beta], point)
         return alpha + beta*np.tan(np.pi*random(self.shape) - np.pi/2.0)
 
 
