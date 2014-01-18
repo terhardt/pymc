@@ -30,7 +30,9 @@ def get_tau(tau=None, sd=None):
 
 # Draws value from parameter if it is another variable, otherwise returns value. Optional point
 # argument allows caller to fix parameters at values specified in point.
-draw_values = lambda params, point=None: np.squeeze([item if not hasattr(item, 'random') else (item.random() if point is None else (point.get(item.name) or item.random())) for item in np.atleast_1d(params)])
+draw_values = lambda params, point=None: np.squeeze([item if not hasattr(item, 'random')
+                else (item.random(None) if point is None else (point.get(item.name) or item.random(point)))
+                    for item in np.atleast_1d(params)])
 
 class Uniform(Continuous):
     """
@@ -78,7 +80,7 @@ class Flat(Continuous):
     def logp(self, value):
         return zeros_like(value)
 
-    def random(self):
+    def random(self, point=None):
         raise NotImplementedError("Cannot sample from Flat.")
 
 
@@ -193,7 +195,7 @@ class Exponential(Continuous):
                      value > 0,
                      lam > 0)
 
-    def random(self, point):
+    def random(self, point=None):
         lam = draw_values(self.lam, point)
         return rexponential(1./lam, self.shape)
 
@@ -403,8 +405,8 @@ class Gamma(Continuous):
             alpha > 0,
             beta > 0)
 
-    def random(self, size):
-        alpha, beta = draw_values(self.alpha, self.beta)
+    def random(self, point=None):
+        alpha, beta = draw_values(self.alpha, self.beta, point)
         return rgamma(alpha, 1./beta, self.shape)
 
 class Bounded(Continuous):
