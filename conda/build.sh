@@ -1,6 +1,6 @@
 #!/bin/bash
 if [ "$(uname)" == "Darwin" ]; then
-    export LDFLAGS="-Wall -undefined dynamic_lookup -bundle -arch x86_64"
+    export LDFLAGS="-static-libgfortran -Wall -undefined dynamic_lookup -bundle -arch x86_64"
 fi
 
 $PYTHON setup.py build
